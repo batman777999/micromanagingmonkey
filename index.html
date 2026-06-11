@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Comic Vault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&family=Permanent+Marker&display=swap');
+
+  :root {
+    --yellow: #FFE600;
+    --red: #E8001C;
+    --blue: #003087;
+    --dark: #1a1a2e;
+    --ink: #0d0d0d;
+    --panel-bg: #fffdf0;
+    --halftone: rgba(0,0,0,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ── HALFTONE TEXTURE ── */
+  body {
+    font-family: 'Comic Neue', cursive;
+    background-color: var(--yellow);
+    background-image: radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1px);
+    background-size: 10px 10px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  /* Disable right-click + devtools hints */
+  body { -webkit-user-select: none; }
+
+  /* ── PANELS ── */
+  .panel {
+    border: 4px solid var(--ink);
+    background: var(--panel-bg);
+    box-shadow: 6px 6px 0 var(--ink);
+    border-radius: 2px;
+  }
+
+  /* ── LOGIN PAGE ── */
+  #login-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+  }
+
+  .comic-logo {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(3rem, 10vw, 7rem);
+    color: var(--red);
+    text-shadow: 4px 4px 0 var(--ink), -2px -2px 0 var(--ink), 2px -2px 0 var(--ink), -2px 2px 0 var(--ink);
+    letter-spacing: 4px;
+    line-height: 1;
+    margin-bottom: 6px;
+    text-align: center;
+    transform: rotate(-2deg);
+    display: inline-block;
+  }
+
+  .comic-subtitle {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 1.1rem;
+    color: var(--blue);
+    background: var(--yellow);
+    border: 3px solid var(--ink);
+    padding: 4px 16px;
+    transform: rotate(1deg);
+    margin-bottom: 32px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .login-panel {
+    width: 100%;
+    max-width: 420px;
+    padding: 36px 32px 32px;
+    position: relative;
+    background: var(--panel-bg);
+  }
+
+  .speech-bubble-top {
+    font-family: 'Bangers', cursive;
+    font-size: 1.4rem;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+  }
+
+  .speech-bubble-top::after {
+    content: '';
+    display: block;
+    width: 60%;
+    height: 3px;
+    background: var(--red);
+    margin: 6px auto 0;
+  }
+
+  .form-group { margin-bottom: 20px; }
+
+  .form-group label {
+    font-family: 'Bangers', cursive;
+    font-size: 1.1rem;
+    color: var(--blue);
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 3px solid var(--ink);
+    background: #fff;
+    font-family: 'Comic Neue', cursive;
+    font-size: 1rem;
+    font-weight: 700;
+    outline: none;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: box-shadow 0.1s;
+  }
+
+  .form-group input:focus {
+    box-shadow: 5px 5px 0 var(--blue);
+    border-color: var(--blue);
+  }
+
+  .btn-login {
+    width: 100%;
+    padding: 14px;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Bangers', cursive;
+    font-size: 1.8rem;
+    letter-spacing: 3px;
+    border: 4px solid var(--ink);
+    cursor: pointer;
+    box-shadow: 5px 5px 0 var(--ink);
+    transition: all 0.1s;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-login:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--ink); }
+  .btn-login:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--ink); }
+
+  .error-msg {
+    display: none;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Bangers', cursive;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    padding: 10px 16px;
+    border: 3px solid var(--ink);
+    margin-top: 14px;
+    text-align: center;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  /* Decorative ZAP / POW elements */
+  .zap {
+    position: absolute;
+    font-family: 'Bangers', cursive;
+    font-size: 2.5rem;
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 var(--ink);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .zap1 { top: 10px; left: -60px; transform: rotate(-20deg); }
+  .zap2 { bottom: 20px; right: -60px; transform: rotate(15deg); font-size: 2rem; color: var(--red); }
+
+  /* ── DASHBOARD ── */
+  #dashboard-page {
+    display: none;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Top navbar */
+  .navbar {
+    background: var(--blue);
+    border-bottom: 5px solid var(--ink);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    min-height: 70px;
+  }
+
+  .nav-logo {
+    font-family: 'Bangers', cursive;
+    font-size: 2.2rem;
+    color: var(--yellow);
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+
+  .nav-user {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 3px solid var(--yellow);
+    background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 1.4rem;
+    color: #fff;
+    text-shadow: 1px 1px 0 var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  .nav-username {
+    font-family: 'Bangers', cursive;
+    font-size: 1.2rem;
+    color: var(--yellow);
+    letter-spacing: 1px;
+  }
+
+  .btn-logout {
+    background: var(--red);
+    color: #fff;
+    border: 3px solid var(--yellow);
+    font-family: 'Bangers', cursive;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    padding: 6px 18px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
+    transition: all 0.1s;
+  }
+  .btn-logout:hover { background: var(--yellow); color: var(--ink); }
+
+  /* Hero Banner */
+  .hero-banner {
+    background: var(--red);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 8px 8px;
+    border-bottom: 5px solid var(--ink);
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-monkey {
+    font-size: 6rem;
+    filter: drop-shadow(4px 4px 0 var(--ink));
+    flex-shrink: 0;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .hero-text h1 {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(1.8rem, 4vw, 3.5rem);
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 var(--ink);
+    letter-spacing: 3px;
+    line-height: 1.1;
+  }
+
+  .hero-text p {
+    font-family: 'Comic Neue', cursive;
+    font-size: 1.1rem;
+    color: #fff;
+    margin-top: 8px;
+    font-weight: 700;
+    text-shadow: 1px 1px 0 var(--ink);
+  }
+
+  .speech-bubble {
+    background: #fff;
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    padding: 10px 18px;
+    font-family: 'Comic Neue', cursive;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+    position: relative;
+    margin-top: 12px;
+    display: inline-block;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -16px; left: 24px;
+    border-width: 16px 10px 0;
+    border-style: solid;
+    border-color: var(--ink) transparent transparent;
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -11px; left: 26px;
+    border-width: 12px 8px 0;
+    border-style: solid;
+    border-color: #fff transparent transparent;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 20px;
+    padding: 24px 40px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    padding: 18px 22px;
+    text-align: center;
+    position: relative;
+  }
+
+  .stat-card .stat-num {
+    font-family: 'Bangers', cursive;
+    font-size: 3rem;
+    color: var(--red);
+    text-shadow: 3px 3px 0 var(--ink);
+    line-height: 1;
+  }
+
+  .stat-card .stat-label {
+    font-family: 'Bangers', cursive;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--blue);
+    margin-top: 4px;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: var(--ink);
+    letter-spacing: 3px;
+    padding: 0 40px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 4px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+
+  /* Comic grid */
+  .comics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+    padding: 0 40px 40px;
+  }
+
+  .comic-card {
+    border: 4px solid var(--ink);
+    background: var(--panel-bg);
+    box-shadow: 6px 6px 0 var(--ink);
+    cursor: pointer;
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .comic-card:hover { transform: translate(-3px,-3px); box-shadow: 9px 9px 0 var(--ink); }
+  .comic-card:active { transform: translate(3px,3px); box-shadow: 3px 3px 0 var(--ink); }
+
+  .comic-cover {
+    height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    position: relative;
+    border-bottom: 4px solid var(--ink);
+    overflow: hidden;
+  }
+
+  .comic-cover-title {
+    font-family: 'Bangers', cursive;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 2px 2px 0 var(--ink);
+    text-align: center;
+    padding: 6px 8px;
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+  }
+
+  .comic-info {
+    padding: 12px 14px;
+  }
+
+  .comic-title-text {
+    font-family: 'Bangers', cursive;
+    font-size: 1.1rem;
+    color: var(--ink);
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+
+  .comic-meta {
+    font-size: 0.8rem;
+    color: #555;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .fav-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--yellow);
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 2px 2px 0 var(--ink);
+    cursor: pointer;
+    transition: transform 0.15s;
+    z-index: 2;
+  }
+  .fav-badge:hover { transform: scale(1.2) rotate(10deg); }
+  .fav-badge.active { background: var(--red); }
+
+  .issue-tag {
+    display: inline-block;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Bangers', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border: 2px solid var(--ink);
+    margin-top: 6px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  /* Favourites section */
+  .fav-section { padding: 0 40px 40px; }
+
+  .empty-fav {
+    font-family: 'Comic Neue', cursive;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #777;
+    background: #fff;
+    border: 3px dashed #aaa;
+    padding: 20px;
+    text-align: center;
+    border-radius: 4px;
+  }
+
+  /* CTF Flag easter egg */
+  .flag-area {
+    padding: 0 40px 60px;
+  }
+
+  .secret-panel {
+    border: 5px solid var(--ink);
+    background: var(--dark);
+    box-shadow: 8px 8px 0 var(--ink);
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .secret-panel::before {
+    content: '🕵️ CLASSIFIED FILE 🕵️';
+    font-family: 'Bangers', cursive;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    color: var(--yellow);
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: var(--red);
+    border-bottom: 3px solid var(--ink);
+    padding: 4px 12px;
+    text-align: center;
+  }
+
+  .secret-panel h3 {
+    font-family: 'Bangers', cursive;
+    font-size: 1.6rem;
+    color: var(--yellow);
+    letter-spacing: 3px;
+    margin-top: 24px;
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+
+  .flag-box {
+    background: #000;
+    border: 3px solid var(--yellow);
+    padding: 16px 20px;
+    margin-top: 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    color: #00ff88;
+    letter-spacing: 2px;
+    box-shadow: 0 0 20px rgba(0,255,136,0.3);
+    position: relative;
+    word-break: break-all;
+  }
+
+  .flag-label {
+    font-family: 'Bangers', cursive;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+
+  .monkey-note {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 0.95rem;
+    color: #ccc;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+
+  /* POW explosion for fav toggle */
+  .pow-effect {
+    position: fixed;
+    pointer-events: none;
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 var(--ink);
+    z-index: 9999;
+    animation: pow-anim 0.6s forwards;
+  }
+
+  @keyframes pow-anim {
+    0% { opacity: 1; transform: scale(0.5) rotate(-10deg); }
+    50% { opacity: 1; transform: scale(1.4) rotate(5deg); }
+    100% { opacity: 0; transform: scale(1.6) translateY(-40px); }
+  }
+
+  /* Reading mode modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: var(--panel-bg);
+    border: 5px solid var(--ink);
+    box-shadow: 10px 10px 0 var(--ink);
+    max-width: 500px;
+    width: 100%;
+    padding: 32px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-family: 'Bangers', cursive;
+    font-size: 1.8rem;
+    color: var(--red);
+    cursor: pointer;
+    background: none;
+    border: none;
+    line-height: 1;
+  }
+
+  .modal-emoji { font-size: 5rem; text-align: center; display: block; margin-bottom: 16px; }
+
+  .modal-title {
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .modal-desc {
+    font-family: 'Comic Neue', cursive;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .modal-fav-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-family: 'Bangers', cursive;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    background: var(--yellow);
+    border: 4px solid var(--ink);
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: all 0.1s;
+  }
+  .modal-fav-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+  .modal-fav-btn.active { background: var(--red); color: #fff; }
+
+  @media (max-width: 600px) {
+    .stats-row, .comics-grid, .section-title, .fav-section, .flag-area { padding-left: 20px; padding-right: 20px; }
+    .hero-banner { padding: 20px; gap: 16px; }
+    .hero-monkey { font-size: 3.5rem; }
+    .navbar { padding: 0 16px; }
+    .comics-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="login-page">
+  <div class="zap zap1">ZAP!</div>
+  <div class="zap zap2">POW!</div>
+
+  <div class="comic-logo">THE COMIC VAULT</div>
+  <div class="comic-subtitle">⚡ UNIVERSE'S GREATEST COLLECTION ⚡</div>
+
+  <div class="panel login-panel">
+    <div class="speech-bubble-top">IDENTIFY YOURSELF, HERO!</div>
+
+    <div class="form-group">
+      <label>🦸 HERO CODENAME</label>
+      <input type="text" id="username-input" placeholder="Enter your alias..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="form-group">
+      <label>🔒 SECRET CODE</label>
+      <input type="password" id="password-input" placeholder="••••••••••••" autocomplete="off">
+    </div>
+
+    <button class="btn-login" onclick="attemptLogin()">⚡ ACCESS THE VAULT ⚡</button>
+
+    <div class="error-msg" id="error-msg">
+      ❌ UNAUTHORIZED! WRONG CREDENTIALS! ❌
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="dashboard-page">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">🦸 COMIC VAULT</div>
+    <div class="nav-user">
+      <div class="avatar">MM</div>
+      <span class="nav-username">MICROMANAGINGMONKEY</span>
+      <button class="btn-logout" onclick="logout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-monkey">🐒</div>
+    <div class="hero-text">
+      <h1>WELCOME BACK,<br>MICROMANAGING MONKEY!</h1>
+      <div class="speech-bubble">Your comics are safe in the vault, chief! 🔐</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="panel stat-card">
+      <div class="stat-num">24</div>
+      <div class="stat-label">📚 TOTAL ISSUES</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-num" id="fav-count">0</div>
+      <div class="stat-label">⭐ FAVOURITES</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-num">7</div>
+      <div class="stat-label">🦹 SERIES</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-num">1966</div>
+      <div class="stat-label">📅 OLDEST ISSUE</div>
+    </div>
+  </div>
+
+  <!-- FAVOURITES section -->
+  <div class="section-title">⭐ MY FAVOURITES</div>
+  <div class="fav-section" id="fav-section">
+    <div class="empty-fav" id="fav-empty">
+      No favourites yet! Click the ⭐ on a comic to add it here.
+    </div>
+    <div class="comics-grid" id="fav-grid" style="padding:0; display:none;"></div>
+  </div>
+
+  <!-- Comics Collection -->
+  <div class="section-title">📚 MY COLLECTION</div>
+  <div class="comics-grid" id="comics-grid"></div>
+
+  <!-- SECRET FILE / CTF FLAG -->
+  <div class="section-title">🕵️ SECRET FILES</div>
+  <div class="flag-area">
+    <div class="secret-panel panel">
+      <h3>🐒 MONKEY'S PERSONAL DOSSIER</h3>
+      <div class="flag-label">// ENCRYPTED MISSION FILE — AUTHORIZED ACCESS ONLY</div>
+      <div class="flag-box">ctf{spider_noir_2o26}</div>
+      <div class="monkey-note">
+        "Found this tucked inside Spider-Man Noir #1.<br>
+        Someone wants this flag badly. Guard it with your life, agent. 🕷️"<br>
+        — MicroManagingMonkey
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Reading Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal-box" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <span class="modal-emoji" id="modal-emoji"></span>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <button class="modal-fav-btn" id="modal-fav-btn" onclick="toggleFavFromModal()">⭐ ADD TO FAVOURITES</button>
+  </div>
+</div>
+
+<script>
+  // ── SECURITY: Block DevTools / right-click ──────────────────────────────
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I','J','C','U'].includes(e.key.toUpperCase())) ||
+      (e.ctrlKey && e.key.toUpperCase() === 'U') ||
+      (e.ctrlKey && e.key.toUpperCase() === 'S')
+    ) {
+      e.preventDefault();
+      showPow('🚫 ACCESS DENIED!', e.clientX, e.clientY);
+      return false;
+    }
+  });
+
+  // Devtools size detection
+  (function devtoolsDetect() {
+    const threshold = 160;
+    setInterval(() => {
+      if (
+        window.outerWidth - window.innerWidth > threshold ||
+        window.outerHeight - window.innerHeight > threshold
+      ) {
+        if (isLoggedIn) {
+          document.getElementById('dashboard-page').style.filter = 'blur(10px)';
+          document.getElementById('dashboard-page').style.pointerEvents = 'none';
+        }
+      } else {
+        if (isLoggedIn) {
+          document.getElementById('dashboard-page').style.filter = '';
+          document.getElementById('dashboard-page').style.pointerEvents = '';
+        }
+      }
+    }, 1000);
+  })();
+
+  // ── AUTH STATE ──────────────────────────────────────────────────────────
+  let isLoggedIn = false;
+
+  // Credentials stored as hashes conceptually — direct compare (demo context)
+  const VALID_USER = 'micromanagingmonkey';
+  const VALID_PASS = 'ilovecomics';
+
+  function attemptLogin() {
+    const u = document.getElementById('username-input').value.trim().toLowerCase();
+    const p = document.getElementById('password-input').value;
+    const err = document.getElementById('error-msg');
+
+    if (u === VALID_USER && p === VALID_PASS) {
+      isLoggedIn = true;
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('dashboard-page').style.display = 'block';
+      renderComics();
+    } else {
+      err.style.display = 'block';
+      document.getElementById('password-input').value = '';
+      setTimeout(() => err.style.display = 'none', 3000);
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !isLoggedIn) attemptLogin();
+  });
+
+  function logout() {
+    isLoggedIn = false;
+    favourites.clear();
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('dashboard-page').style.display = 'none';
+    document.getElementById('username-input').value = '';
+    document.getElementById('password-input').value = '';
+  }
+
+  // ── COMICS DATA ─────────────────────────────────────────────────────────
+  const comics = [
+    { id:1,  emoji:'🕷️', bg:'#003087', title:'The Amazing Spider-Man',   series:'Spider-Man',   issue:'#1',   year:1963, desc:'The web-slinger faces his greatest challenge yet as a new villain threatens New York City. With great power comes great responsibility!' },
+    { id:2,  emoji:'🦇', bg:'#1a1a2e', title:'Batman: The Dark Knight',   series:'Batman',       issue:'#251', year:1973, desc:'The Joker returns! Gotham\'s Dark Knight faces the Clown Prince of Crime in this legendary confrontation.' },
+    { id:3,  emoji:'🔨', bg:'#8B0000', title:'The Mighty Thor',           series:'Thor',         issue:'#337', year:1983, desc:'A new hammer-wielder appears! Beta Ray Bill proves himself worthy in this landmark issue.' },
+    { id:4,  emoji:'🌟', bg:'#2d6a4f', title:'Green Lantern',             series:'GL Corps',     issue:'#76',  year:1970, desc:'Hal Jordan confronts social injustice head-on in this groundbreaking issue by Neal Adams.' },
+    { id:5,  emoji:'🦸', bg:'#c77dff', title:'Captain Marvel',            series:'Marvel',       issue:'#18',  year:2014, desc:'Carol Danvers soars to new heights as Earth\'s Mightiest Hero in this action-packed issue!' },
+    { id:6,  emoji:'🕷️', bg:'#2b2d42', title:'Spider-Man Noir',           series:'Spider-Man',   issue:'#1',   year:2009, desc:'A darker, grittier Spider-Man set in the 1930s Depression era. Secrets lurk in every shadow…' },
+    { id:7,  emoji:'🐺', bg:'#5c4033', title:'Wolverine',                 series:'X-Men',        issue:'#1',   year:1982, desc:'The solo debut of Logan! The best there is at what he does — and what he does isn\'t very nice.' },
+    { id:8,  emoji:'⚡', bg:'#f4a261', title:'The Flash',                 series:'DC Flash',     issue:'#123', year:1961, desc:'Flash of Two Worlds! Barry Allen meets Jay Garrick in the first inter-dimensional crossover.' },
+    { id:9,  emoji:'💚', bg:'#386641', title:'The Incredible Hulk',       series:'Hulk',         issue:'#181', year:1974, desc:'First full appearance of Wolverine! Hulk vs Wolverine vs Wendigo in a battle for the ages.' },
+    { id:10, emoji:'🔱', bg:'#006d77', title:'Aquaman',                   series:'DC',           issue:'#35',  year:2014, desc:'The King of Atlantis faces a war beneath the waves that could spill onto land and destroy both worlds.' },
+    { id:11, emoji:'🦅', bg:'#e63946', title:'Captain America',           series:'Marvel',       issue:'#1',   year:1941, desc:'The Star-Spangled Avenger punches evil right on the cover in this historic first issue!' },
+    { id:12, emoji:'🌀', bg:'#7209b7', title:'Doctor Strange',            series:'Marvel',       issue:'#1',   year:1966, desc:'The Sorcerer Supreme protects reality itself from multidimensional threats beyond imagination.' },
+    { id:13, emoji:'🐒', bg:'#ff6b35', title:'Monkey Business Weekly',   series:'Original',     issue:'#42',  year:2024, desc:'MicroManagingMonkey\'s personal comic anthology — chaos management and banana diplomacy await!' },
+    { id:14, emoji:'🦊', bg:'#a8201a', title:'Deadpool: Merc With a Mouth', series:'Marvel',   issue:'#1',   year:1997, desc:'The Merc with a Mouth breaks the fourth wall in the most chaotic comic ever published.' },
+    { id:15, emoji:'🌙', bg:'#1b263b', title:'Moon Knight',               series:'Marvel',       issue:'#1',   year:1980, desc:'Marc Spector, the Fist of Khonshu, walks the line between sanity and divine power.' },
+    { id:16, emoji:'🔥', bg:'#d62828', title:'Fantastic Four',            series:'Marvel',       issue:'#1',   year:1961, desc:'Marvel\'s first family explores the impossible — this issue started the entire Marvel Age!' },
+  ];
+
+  // ── FAVOURITES ──────────────────────────────────────────────────────────
+  const favourites = new Set();
+  let currentModalId = null;
+
+  function toggleFav(id, event) {
+    if (event) { event.stopPropagation(); showPow(favourites.has(id) ? '💔' : '⭐ FAV!', event.clientX, event.clientY); }
+    if (favourites.has(id)) favourites.delete(id);
+    else favourites.add(id);
+    updateFavUI();
+    renderComics();
+    renderFavSection();
+  }
+
+  function toggleFavFromModal() {
+    if (currentModalId === null) return;
+    toggleFav(currentModalId, null);
+    const btn = document.getElementById('modal-fav-btn');
+    if (favourites.has(currentModalId)) {
+      btn.textContent = '💔 REMOVE FROM FAVOURITES';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = '⭐ ADD TO FAVOURITES';
+      btn.classList.remove('active');
+    }
+  }
+
+  function updateFavUI() {
+    document.getElementById('fav-count').textContent = favourites.size;
+  }
+
+  // ── RENDER ───────────────────────────────────────────────────────────────
+  function renderComics() {
+    const grid = document.getElementById('comics-grid');
+    grid.innerHTML = '';
+    comics.forEach(c => grid.appendChild(makeCard(c, false)));
+    renderFavSection();
+    updateFavUI();
+  }
+
+  function makeCard(c, mini) {
+    const card = document.createElement('div');
+    card.className = 'comic-card';
+    card.onclick = () => openModal(c.id);
+
+    const isFav = favourites.has(c.id);
+    card.innerHTML = `
+      <div class="comic-cover" style="background:${c.bg}; background-image:radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size:8px 8px;">
+        <span style="font-size:${mini?'3.5rem':'5rem'};filter:drop-shadow(3px 3px 0 rgba(0,0,0,0.5))">${c.emoji}</span>
+        <div class="comic-cover-title" style="background:rgba(0,0,0,0.65)">${c.series}</div>
+      </div>
+      <div class="fav-badge ${isFav?'active':''}" onclick="toggleFav(${c.id}, event)" title="Toggle Favourite">
+        ${isFav ? '❤️' : '⭐'}
+      </div>
+      <div class="comic-info">
+        <div class="comic-title-text">${c.title}</div>
+        <div class="comic-meta">${c.year}</div>
+        <span class="issue-tag">ISSUE ${c.issue}</span>
+      </div>`;
+    return card;
+  }
+
+  function renderFavSection() {
+    const favGrid = document.getElementById('fav-grid');
+    const favEmpty = document.getElementById('fav-empty');
+    const favs = comics.filter(c => favourites.has(c.id));
+    if (favs.length === 0) {
+      favGrid.style.display = 'none';
+      favEmpty.style.display = 'block';
+    } else {
+      favGrid.style.display = 'grid';
+      favEmpty.style.display = 'none';
+      favGrid.innerHTML = '';
+      favs.forEach(c => favGrid.appendChild(makeCard(c, false)));
+    }
+  }
+
+  // ── MODAL ────────────────────────────────────────────────────────────────
+  function openModal(id) {
+    const c = comics.find(x => x.id === id);
+    if (!c) return;
+    currentModalId = id;
+    document.getElementById('modal-emoji').textContent = c.emoji;
+    document.getElementById('modal-title').textContent = c.title + ' ' + c.issue;
+    document.getElementById('modal-desc').textContent = c.desc;
+    const btn = document.getElementById('modal-fav-btn');
+    if (favourites.has(id)) {
+      btn.textContent = '💔 REMOVE FROM FAVOURITES';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = '⭐ ADD TO FAVOURITES';
+      btn.classList.remove('active');
+    }
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    currentModalId = null;
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  // ── POW EFFECT ───────────────────────────────────────────────────────────
+  const powWords = ['POW!','ZAP!','BAM!','WHAM!','KAPOW!','BLAM!','KRAK!'];
+  function showPow(word, x, y) {
+    const el = document.createElement('div');
+    el.className = 'pow-effect';
+    el.textContent = word || powWords[Math.floor(Math.random() * powWords.length)];
+    el.style.left = (x - 40) + 'px';
+    el.style.top = (y - 40) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 700);
+  }
+
+  document.addEventListener('click', e => {
+    if (isLoggedIn && Math.random() < 0.15 && !e.target.closest('.comic-card') && !e.target.closest('.modal-box')) {
+      showPow(null, e.clientX, e.clientY);
+    }
+  });
+</script>
+</body>
+</html>
